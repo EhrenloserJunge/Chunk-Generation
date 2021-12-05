@@ -1,0 +1,293 @@
+-- CUBE DATA --
+
+local CUBE_SIZE = 3
+local CUBE_ANCHORED = true
+local CUBE_STORAGE = {}
+local CUBE_STORAGE_MODEL = script["Cube Storage"]
+
+-- CHUNK DATA --
+
+local CHUNK_WIDTH = 5
+local CHUNK_HEIGHT = 3
+local CHUNK_SEE_LEVEL = 1
+local CHUNK_ROOT = script.Root
+local CHUNK_LAST_LAYER = {}
+local CHUNK_LAST_LAYER_MODEL = script["Chunk Last Layer"]
+local CHUNK_MAX_HEIGHT = CHUNK_ROOT.Position.Y + (CUBE_SIZE * 4)
+local FINISHED_CHUNK = {}
+local FINISHED_CHUNK_MODEL = script["Finished Chunk"]
+
+-- COLOR DATA --
+
+local GRASS_HEIGHT = CHUNK_ROOT.Position.Y + (CUBE_SIZE * 2)
+local STONE_HEIGHT = CHUNK_ROOT.Position.Y + (CUBE_SIZE * 4)
+
+local STONE_COLOR = BrickColor.new("Medium stone grey")
+local GRASS_COLOR = BrickColor.new("Moss")
+local DIRT_COLOR = BrickColor.new("Brown")
+
+-- TEXTURE DATA --
+
+local TEXTURE_LIBARY = script["Texture Libary"]
+
+local DIRT_TEXTURE = TEXTURE_LIBARY.Dirt
+local STONE_TEXTURE = TEXTURE_LIBARY.Stone
+local GRASS_TOP = TEXTURE_LIBARY.GrassTop
+local GRASS_SIDE = TEXTURE_LIBARY.GrassSide
+
+-- CHUNK GENERATION --
+
+function chunk_generate()
+	local erodecubes = math.random(1, CHUNK_HEIGHT * CHUNK_HEIGHT)
+	local heightcubes = math.random(erodecubes, CHUNK_HEIGHT * CHUNK_HEIGHT)
+	
+	local index = 0
+	local width_index = 0
+	local height_index = 0
+
+	repeat wait()
+		if width_index == 0 then
+			if index == 0 then
+				local generatedPart = Instance.new("Part", CUBE_STORAGE_MODEL)
+				generatedPart.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+				generatedPart.Anchored = CUBE_ANCHORED
+				generatedPart.Position = CHUNK_ROOT.Position + Vector3.new(0, CUBE_SIZE * height_index, 0)
+
+				if height_index == CHUNK_HEIGHT - 1 then
+					table.insert(CHUNK_LAST_LAYER,1,generatedPart)
+
+					generatedPart.Parent = CHUNK_LAST_LAYER_MODEL
+
+					index += 1
+				else
+					table.insert(CUBE_STORAGE,1,generatedPart)
+					
+					index += 1
+				end
+			else
+				local generatedPart = Instance.new("Part", game.Workspace)
+				generatedPart.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+				generatedPart.Anchored = CUBE_ANCHORED
+
+				if height_index == CHUNK_HEIGHT - 1 then
+					table.insert(CHUNK_LAST_LAYER,1,generatedPart)
+					
+					generatedPart.Parent = CHUNK_LAST_LAYER_MODEL
+					
+					local positionOffset = CHUNK_ROOT.Position + Vector3.new(CUBE_SIZE * index, CUBE_SIZE * height_index, 0)
+					generatedPart.Position = positionOffset
+
+					index += 1
+				else
+					table.insert(CUBE_STORAGE,1,generatedPart)
+	
+					local positionOffset = CHUNK_ROOT.Position + Vector3.new(CUBE_SIZE * index, CUBE_SIZE * height_index, 0)
+					generatedPart.Position = positionOffset
+
+					index += 1
+				end
+			end
+		else
+			if index == 0 then
+				local generatedPart = Instance.new("Part", game.Workspace)
+				generatedPart.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+				generatedPart.Anchored = CUBE_ANCHORED
+				generatedPart.Position = CHUNK_ROOT.Position + Vector3.new(0, CUBE_SIZE * height_index, CUBE_SIZE * width_index)
+
+				if height_index == CHUNK_HEIGHT - 1 then
+					table.insert(CHUNK_LAST_LAYER,1,generatedPart)
+
+					generatedPart.Parent = CHUNK_LAST_LAYER_MODEL
+
+					index += 1
+				else
+					table.insert(CUBE_STORAGE,1,generatedPart)
+					
+					index += 1
+				end
+			else
+				local generatedPart = Instance.new("Part", game.Workspace)
+				generatedPart.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+				generatedPart.Anchored = CUBE_ANCHORED
+
+				if height_index == CHUNK_HEIGHT - 1 then
+					table.insert(CHUNK_LAST_LAYER,1,generatedPart)
+
+					generatedPart.Parent = CHUNK_LAST_LAYER_MODEL
+					
+					local positionOffset = CHUNK_ROOT.Position + Vector3.new(CUBE_SIZE * index, CUBE_SIZE * height_index, CUBE_SIZE * width_index)
+					generatedPart.Position = positionOffset
+					
+					index += 1
+				else
+					table.insert(CUBE_STORAGE,1,generatedPart)
+
+					local positionOffset = CHUNK_ROOT.Position + Vector3.new(CUBE_SIZE * index, CUBE_SIZE * height_index, CUBE_SIZE * width_index)
+					generatedPart.Position = positionOffset
+					
+					index += 1
+				end
+			end
+		end
+
+		if index == CHUNK_WIDTH then
+			index = 0
+			width_index += 1
+		end
+
+		if width_index == CHUNK_WIDTH then
+			width_index = 0
+			height_index += 1
+		end
+		
+	until height_index == CHUNK_HEIGHT
+	
+	for index, cube in pairs(CUBE_STORAGE) do
+		cube.Name = "Part"..index
+	end
+	
+	for index, cube in pairs(CHUNK_LAST_LAYER) do
+		cube.Name = "Part"..index
+	end
+	
+	local ECindex = 0
+	
+	repeat wait()
+		local cubes = CHUNK_LAST_LAYER_MODEL:GetChildren()
+		local cube = cubes[math.random(1, #cubes)]
+		
+		cube:Destroy()
+		ECindex += 1
+	until ECindex == erodecubes
+	
+	local HCindex = 0
+	
+	repeat wait()
+		local cubes = CHUNK_LAST_LAYER_MODEL:GetChildren()
+		local cube = cubes[math.random(1, #cubes)]:Clone()
+		
+		cube.Parent = CHUNK_LAST_LAYER_MODEL
+		cube.Position += Vector3.new(0, CUBE_SIZE, 0)
+		
+		if cube.Position.Y > CHUNK_MAX_HEIGHT then
+			cube:Destroy()
+			HCindex -= 1
+		else
+			HCindex += 1
+		end
+	until HCindex == heightcubes
+	
+	-- CLEANUP --
+	
+	for index, cube in pairs(CUBE_STORAGE) do
+		cube.Parent = CUBE_STORAGE_MODEL
+	end
+	
+	for index, cube in pairs(CHUNK_LAST_LAYER_MODEL:GetChildren()) do
+		cube.Parent = FINISHED_CHUNK_MODEL
+		
+		table.insert(FINISHED_CHUNK,1,cube)
+	end
+	
+	for index, cube in pairs(CUBE_STORAGE_MODEL:GetChildren()) do
+		cube.Parent = FINISHED_CHUNK_MODEL
+
+		table.insert(FINISHED_CHUNK,1,cube)
+	end
+	
+	for index, cubeA in pairs(FINISHED_CHUNK_MODEL:GetChildren()) do
+		cubeA.Name = "Part"..index
+		
+		for index, cubeB in pairs(FINISHED_CHUNK_MODEL:GetChildren()) do
+			if not cubeA == cubeB and cubeA.Position == cubeB.Position then
+				cubeB:Destroy()
+			end
+		end
+	end
+	
+	-- COLORING AND TEXTURING --
+	
+	for index, cube in pairs(FINISHED_CHUNK_MODEL:GetChildren()) do
+		if cube.Position.Y >= GRASS_HEIGHT and cube.Position.Y < STONE_HEIGHT then
+			cube.BrickColor = GRASS_COLOR
+			
+			local index = 0
+			
+			repeat wait()
+				local cubeTexture = GRASS_SIDE:Clone()
+				cubeTexture.Parent = cube
+				
+				if index == 1 then
+					cubeTexture.Face = "Back"
+				elseif index == 2 then
+					cubeTexture.Face = "Left"
+				elseif index == 3 then
+					cubeTexture.Face = "Right"
+				end
+				
+				index += 1
+				
+			until index == 4
+			
+			local topTexture = GRASS_TOP:Clone()
+			topTexture.Parent = cube
+			topTexture.Face = "Top"
+			
+			local bottomTexture = DIRT_TEXTURE:Clone()
+			bottomTexture.Parent = cube
+			bottomTexture.Face = "Bottom"
+			
+		elseif cube.Position.Y < GRASS_HEIGHT then
+			cube.BrickColor = DIRT_COLOR
+			
+			local index = 0
+			
+			repeat wait()
+				local cubeTexture = DIRT_TEXTURE:Clone()
+				cubeTexture.Parent = cube
+				
+				if index == 1 then
+					cubeTexture.Face = "Back"
+				elseif index == 2 then
+					cubeTexture.Face = "Left"
+				elseif index == 3 then
+					cubeTexture.Face = "Right"
+				elseif index == 4 then
+					cubeTexture.Face = "Top"
+				elseif index == 5 then
+					cubeTexture.Face = "Bottom"
+				end
+				
+				index += 1
+				
+			until index == 6
+			
+		elseif cube.Position.Y >= STONE_HEIGHT then
+			cube.BrickColor = STONE_COLOR
+			
+			local index = 0
+			
+			repeat wait()
+				local cubeTexture = STONE_TEXTURE:Clone()
+				cubeTexture.Parent = cube
+				
+				if index == 1 then
+					cubeTexture.Face = "Back"
+				elseif index == 2 then
+					cubeTexture.Face = "Left"
+				elseif index == 3 then
+					cubeTexture.Face = "Right"
+				elseif index == 4 then
+					cubeTexture.Face = "Top"
+				elseif index == 5 then
+					cubeTexture.Face = "Bottom"
+				end
+
+				index += 1
+
+			until index == 6
+		end
+	end
+end
+
+chunk_generate()
