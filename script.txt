@@ -288,6 +288,29 @@ function chunk_generate()
 			until index == 6
 		end
 	end
+	
+	-- FINAL CLEANUP --
+	
+	for index, cubeA in pairs(FINISHED_CHUNK_MODEL:GetChildren()) do
+		if cubeA.Position.Y > GRASS_HEIGHT and cubeA.Position.Y < STONE_HEIGHT then
+			
+			local raycastCube = Instance.new("Part", game.Workspace)
+			raycastCube.Size = Vector3.new(CUBE_SIZE,CUBE_SIZE,CUBE_SIZE)
+			raycastCube.Position = Vector3.new(cubeA.Position.X, cubeA.Position.Y - CUBE_SIZE, cubeA.Position.Z)
+			raycastCube.Anchored = true
+			raycastCube.CanCollide = false
+			
+			for index, cubeB in pairs(FINISHED_CHUNK_MODEL:GetChildren()) do
+				if cubeB.Position == raycastCube.Position then
+					for index, texture in pairs(cubeB:GetChildren()) do
+						texture.Texture = DIRT_TEXTURE.Texture
+						
+						raycastCube:Destroy()
+					end
+				end
+			end
+		end
+	end
 end
 
 chunk_generate()
